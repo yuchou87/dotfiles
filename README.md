@@ -89,8 +89,22 @@ Not handled by `install.sh` (intentional):
 - **Language toolchains** (Go / Rust / Python) — install per-project on demand.
 - **Setting Nerd Font as terminal font** — open your terminal preferences
   and pick `JetBrainsMono Nerd Font` after install.
-- **Modifying `~/.zshrc`** — `zsh/aliases.zsh` is provided but you must
-  `source` it manually (the script tells you how).
+
+Optionally handled with explicit consent:
+
+- **Appending `source` line to `~/.zshrc` / `~/.bashrc`** — the script
+  detects your `$SHELL` and asks. Default answer is **No**. If you accept:
+  - The original rc file is backed up to `<rc>.bak.YYYYMMDD-HHMMSS`
+  - A marked block is appended:
+    ```
+    # >>> dotfiles aliases >>>
+    source /path/to/dotfiles/zsh/aliases.zsh
+    # <<< dotfiles aliases <<<
+    ```
+  - Re-running is idempotent — the marker is detected and skipped.
+  - To remove later: delete the marked block + restore from backup.
+- **lazygit editor config** — same opt-in pattern. Default **Yes**
+  (lower-risk: writes a new file when none exists).
 
 ## Language support
 
@@ -128,10 +142,11 @@ DAP UI auto-opens on session start (panels for variables / scopes / breakpoints
 
 | Flag              | Effect                                                                |
 |-------------------|-----------------------------------------------------------------------|
-| (none)            | Default. Check deps → prompt to install missing → symlink configs → lazygit setup. |
+| (none)            | Default. Check deps → prompt to install missing → symlink configs → lazygit + shell-rc prompts. |
 | `--check`         | Dependency report only. Exit 0 if all required present, 1 otherwise.  |
 | `--skip-deps`     | Skip dependency check / install. Useful in CI or when deps are managed elsewhere. |
 | `--skip-lazygit`  | Skip the "set Neovim as lazygit editor" prompt.                       |
+| `--skip-aliases`  | Skip the "append source line to ~/.zshrc / ~/.bashrc" prompt.         |
 | `--copy`          | Copy instead of symlink. Edits to repo do **not** propagate.          |
 | `--force`         | Overwrite existing target (no backup).                                |
 | `--dry-run`       | Print every action without executing.                                 |

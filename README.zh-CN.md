@@ -87,8 +87,22 @@ nvim
 - **语言工具链** (Go / Rust / Python) — 按项目按需安装
 - **把 Nerd Font 设为终端字体** — 装好后在终端 Preferences 选
   `JetBrainsMono Nerd Font`
-- **修改你的 `~/.zshrc`** — `zsh/aliases.zsh` 提供但不自动 source,
-  脚本会打印 source 指令,你决定要不要加进 `.zshrc`
+
+需要你**显式确认**才会做的(默认拒绝,安全护栏):
+
+- **追加 `source` 行到 `~/.zshrc` / `~/.bashrc`** — 脚本检测 `$SHELL`
+  自动选目标 rc 文件,默认答案是 **N**(拒绝)。如果你输 `y`:
+  - 原 rc 文件备份成 `<rc>.bak.YYYYMMDD-HHMMSS`
+  - 追加一个有 marker 的 block:
+    ```
+    # >>> dotfiles aliases >>>
+    source /path/to/dotfiles/zsh/aliases.zsh
+    # <<< dotfiles aliases <<<
+    ```
+  - 重复跑是幂等的 — marker 检测到就跳过
+  - 想撤回:删 block + 从备份恢复
+- **lazygit 编辑器配置** — 同样 opt-in。默认 **Y**(低风险:
+  无配置时新建文件,有配置时只打印片段不动)
 
 ## 语言支持
 
@@ -125,10 +139,11 @@ DAP UI 在调试启动时自动弹出(变量 / 作用域 / 断点 / 调用栈 / 
 
 | 参数              | 作用                                                                  |
 |-------------------|-----------------------------------------------------------------------|
-| (无)              | 默认。检查依赖 → 提示装缺的 → symlink 配置 → lazygit 编辑器提示。     |
+| (无)              | 默认。检查依赖 → 提示装缺的 → symlink 配置 → lazygit + shell rc 提示。 |
 | `--check`         | 仅做依赖报告。必装齐全 exit 0,缺则 exit 1。                          |
 | `--skip-deps`     | 跳过依赖检查/安装。CI 或依赖另外管理时用。                            |
 | `--skip-lazygit`  | 跳过"把 nvim 设为 lazygit 编辑器"的提示。                             |
+| `--skip-aliases`  | 跳过"追加 source 行到 ~/.zshrc / ~/.bashrc"的提示。                   |
 | `--copy`          | 拷贝而不是 symlink。改 repo 不会同步到 ~/.config。                    |
 | `--force`         | 覆盖现有目标(不备份)。                                              |
 | `--dry-run`       | 仅打印每一步动作。                                                    |

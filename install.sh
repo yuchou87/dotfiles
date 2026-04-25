@@ -7,6 +7,7 @@
 #   ./install.sh --check          # check dependencies only, no install
 #   ./install.sh --skip-deps      # install configs without touching system deps
 #   ./install.sh --skip-lazygit   # don't offer to set up lazygit editor
+#   ./install.sh --skip-aliases   # don't offer to add shell alias source line
 #   ./install.sh --copy nvim      # copy instead of symlink
 #   ./install.sh --force nvim     # overwrite existing target without backup
 #   ./install.sh --dry-run nvim   # show actions without executing
@@ -56,6 +57,7 @@ DRY_RUN=0
 CHECK_ONLY=0
 SKIP_DEPS=0
 SKIP_LAZYGIT=0
+SKIP_ALIASES=0
 ARGS=()
 
 while [ $# -gt 0 ]; do
@@ -66,8 +68,9 @@ while [ $# -gt 0 ]; do
     --check)        CHECK_ONLY=1; shift ;;
     --skip-deps)    SKIP_DEPS=1; shift ;;
     --skip-lazygit) SKIP_LAZYGIT=1; shift ;;
+    --skip-aliases) SKIP_ALIASES=1; shift ;;
     -h|--help)
-      sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     -*)
@@ -473,21 +476,83 @@ echo
 # 7. lazygit editor prompt
 setup_lazygit
 
-# 8. Optional zsh aliases hint
-zsh_aliases="$SCRIPT_DIR/zsh/aliases.zsh"
-if [ -f "$zsh_aliases" ]; then
-  zshrc="$HOME/.zshrc"
-  if [ -f "$zshrc" ] && grep -qF "$zsh_aliases" "$zshrc" 2>/dev/null; then
-    :  # already sourced
-  else
-    head "Optional: shell aliases (gt / lg / v)"
-    echo "    Add to your ~/.zshrc:"
-    echo
-    echo "        source $zsh_aliases"
-    echo
-    echo "    Not sourced automatically — modifying ~/.zshrc is your call."
+# 8. Shell aliases — opt-in, modifies user shell rc with explicit consent
+setup_aliases() {
+  if [ $SKIP_ALIASES -eq 1 ]; then return 0; fi
+
+  local aliases_file="$SCRIPT_DIR/zsh/aliases.zsh"
+  [ ! -f "$aliases_file" ] && return 0
+
+  # Detect target shell rc
+  local rc=""
+  case "${SHELL:-}" in
+    */zsh)  rc="$HOME/.zshrc" ;;
+    */bash) rc="$HOME/.bashrc" ;;
+  esac
+
+  if [ -z "$rc" ]; then
+    head "Shell aliases"
+    note "Unrecognized SHELL ($SHELL). Source manually:"
+    echo "        source $aliases_file"
+    return 0
   fi
-fi
+
+  if [ ! -f "$rc" ]; then
+    head "Shell aliases"
+    note "$rc does not exist. Create it first, then re-run --skip-deps to add aliases."
+    return 0
+  fi
+
+  local marker_begin="# >>> dotfiles aliases >>>"
+  local marker_end="# <<< dotfiles aliases <<<"
+
+  if grep -qF "$marker_begin" "$rc" 2>/dev/null; then
+    head "Shell aliases"
+    ok "already configured in $rc (look for the dotfiles block)"
+    return 0
+  fi
+
+  head "Shell aliases (gt / lg / v)"
+  echo "    Will append to: $rc"
+  echo "    Block to add:"
+  echo
+  echo "        $marker_begin"
+  echo "        source $aliases_file"
+  echo "        $marker_end"
+  echo
+  # Default NO — modifying user shell rc is invasive
+  read -r -p "Append this block to $rc? [y/N] " ans
+  case "$ans" in
+    y|Y|yes|YES) ;;
+    *) note "skipped. You can source manually any time:"
+       echo "        source $aliases_file"
+       return 0
+       ;;
+  esac
+
+  # Backup before modifying
+  local stamp backup
+  stamp="$(date +%Y%m%d-%H%M%S)"
+  backup="${rc}.bak.${stamp}"
+
+  if [ $DRY_RUN -eq 1 ]; then
+    echo "[dry-run] cp $rc $backup"
+    echo "[dry-run] append marked block to $rc"
+  else
+    cp "$rc" "$backup"
+    {
+      printf '\n'
+      printf '%s\n' "$marker_begin"
+      printf 'source %s\n' "$aliases_file"
+      printf '%s\n' "$marker_end"
+    } >> "$rc"
+  fi
+  ok "appended to $rc"
+  echo "    backup: $backup"
+  echo "    To activate now: source $rc  (or open a new shell)"
+}
+
+setup_aliases
 
 # 9. Final hint
 echo
