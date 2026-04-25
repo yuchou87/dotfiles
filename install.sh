@@ -546,8 +546,13 @@ if [ -n "${MISSING_REQUIRED// }" ] && [ $SKIP_DEPS -eq 0 ]; then
   warn "Required deps missing:${MISSING_REQUIRED}"
   install_deps_for "$MISSING_REQUIRED"
   echo
-  if ! have nvim || ! have git; then
-    miss "Required deps still missing. Install them, then re-run."
+  # Re-check: nvim binary present AND version >= 0.10. The version check
+  # matters because `MISSING_REQUIRED` may have appended "nvim" purely
+  # for being too old, in which case `have nvim` returns true but the
+  # plugins would still fail.
+  if ! have nvim || ! have git || ! nvim_version_ok; then
+    miss "Required deps still missing or nvim version < 0.10."
+    miss "Install them and re-run, or pass --skip-deps to bypass."
     exit 1
   fi
 fi
@@ -612,7 +617,7 @@ setup_aliases() {
 
   if [ ! -f "$rc" ]; then
     head "Shell aliases"
-    note "$rc does not exist. Create it first, then re-run --skip-deps to add aliases."
+    note "$rc does not exist. Create it first (e.g. \`touch $rc\`), then re-run install.sh."
     return 0
   fi
 

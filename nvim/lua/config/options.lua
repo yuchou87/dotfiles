@@ -30,6 +30,8 @@ vim.filetype.add({
     ["docker-compose.yaml"] = "yaml.docker-compose",
   },
   pattern = {
-    ["%.env%..*"] = "sh", -- .env.local / .env.production / etc.
+    -- Anchored: matches .env.local / .env.production / .env.test
+    -- but NOT foo.env.bar (only basenames starting with `.env.` qualify).
+    ["^%.env%.[%w_-]+$"] = "sh",
   },
 })

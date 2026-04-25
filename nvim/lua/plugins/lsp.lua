@@ -62,8 +62,10 @@ return {
           default_config = {
             cmd                 = { "hurl-lsp" },
             filetypes           = { "hurl" },
-            root_dir            = lsp.util.find_git_ancestor or function(fname)
-              return vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true, path = fname })[1])
+            -- vim.fs.root is the modern API (nvim 0.10+), nil-safe.
+            -- Falls back to cwd when buffer isn't inside a git repo.
+            root_dir            = function(fname)
+              return vim.fs.root(fname, { ".git" }) or vim.fn.getcwd()
             end,
             single_file_support = true,
           },
@@ -143,11 +145,15 @@ return {
         docker_compose_language_service = {
           filetypes = { "yaml.docker-compose" },
         },
-
-        -- Custom server: only attaches if `hurl-lsp` binary is on PATH.
-        -- Install: ./install.sh --with-extras  (brew tap testmind-hq/tap)
-        hurl_lsp = {},
       }
+
+      -- Custom server: only register + setup when the binary is on PATH.
+      -- Otherwise lspconfig spawns the missing binary on every .hurl open
+      -- and floods diagnostics with "command not found".
+      -- Install: ./install.sh --with-extras  (brew tap testmind-hq/tap)
+      if vim.fn.executable("hurl-lsp") == 1 then
+        servers.hurl_lsp = {}
+      end
 
       for name, opts in pairs(servers) do
         opts.capabilities = caps
