@@ -37,30 +37,49 @@ dotfiles/
 git clone https://github.com/yuchou87/dotfiles.git ~/Github/yuchou87/dotfiles
 cd ~/Github/yuchou87/dotfiles
 
-# 2. Preview what install.sh will do
-./install.sh --dry-run
+# 2. Inspect dependency status (no install)
+./install.sh --check
 
-# 3. Install (symlinks into ~/.config)
+# 3. Install. Will:
+#    a. Check deps; prompt to brew-install missing ones (macOS)
+#    b. Symlink nvim/ -> ~/.config/nvim (auto-backups existing config)
+#    c. If lazygit found: prompt to set Neovim as its default editor
 ./install.sh
 
 # 4. Launch Neovim — lazy.nvim auto-bootstraps and syncs plugins
 nvim
 
 # 5. After :Lazy reports all green, verify:
-#    :checkhealth      (mason / lsp / treesitter sections)
+#    :checkhealth      (mason / lsp / treesitter / dap sections)
 #    :Mason            (all servers/tools installed)
 #    :LspInfo          (per-buffer LSP status)
 ```
 
 ## Requirements
 
-- **Neovim ≥ 0.10** (md-render.nvim requirement) — `brew install neovim`
+`./install.sh --check` reports the status of every dep below and
+prompts to `brew install` whatever is missing on macOS.
+
+| Tier        | Tool                | Why                                            |
+|-------------|---------------------|------------------------------------------------|
+| required    | `nvim` ≥ 0.10       | md-render.nvim minimum                         |
+| required    | `git`               | lazy.nvim clones plugins from GitHub           |
+| recommended | `ripgrep` (`rg`)    | Snacks live grep + Treesitter selectoid        |
+| recommended | `fd`                | Fast file finder                               |
+| recommended | `lazygit`           | `<leader>gg` integration in Neovim             |
+| recommended | `fzf`               | Snacks fuzzy backend (optional but nice)       |
+| recommended | `node`              | Vue language server / mermaid-cli / js-debug   |
+| optional    | `ffmpeg`            | md-render image format conversion              |
+| optional    | `imagemagick`       | md-render image format conversion              |
+| optional    | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid diagram render |
+
+Additional one-time setup (not auto-installed):
+
 - **Nerd Font** for icons — `brew install --cask font-jetbrains-mono-nerd-font`
-- **ripgrep + fd** — `brew install ripgrep fd`
-- **Node.js, Go, Rust, Python** for the language toolchains you actually use
-- **Kitty graphics protocol terminal** for md-render image/Mermaid display:
+  then set as terminal font in Ghostty / iTerm2 / etc.
+- **Language toolchains** (Go / Rust / Python) for the LSPs to find their compilers
+- **Kitty graphics protocol terminal** for md-render image / Mermaid display:
   Ghostty, WezTerm, or Kitty. iTerm2 / macOS Terminal fall back to plain text.
-- **md-render extras (optional)**: `brew install ffmpeg imagemagick && npm i -g @mermaid-js/mermaid-cli`
 
 ## Language support
 
@@ -94,17 +113,24 @@ DAP UI auto-opens on session start (panels for variables / scopes / breakpoints
 / stack / repl / console) and closes on terminate. Toggle manually with
 `<leader>du`.
 
-## Install modes
+## install.sh flags
 
-| Mode      | Command                       | Notes                                      |
-|-----------|-------------------------------|--------------------------------------------|
-| Symlink   | `./install.sh`                | Default. `git pull` updates take effect immediately. |
-| Copy      | `./install.sh --copy`         | One-shot copy. Edits to repo do **not** propagate. |
-| Force     | `./install.sh --force`        | Overwrites existing target (no backup).    |
-| Dry run   | `./install.sh --dry-run`      | Print actions only.                        |
+| Flag              | Effect                                                                |
+|-------------------|-----------------------------------------------------------------------|
+| (none)            | Default. Check deps → prompt to install missing → symlink configs → lazygit setup. |
+| `--check`         | Dependency report only. Exit 0 if all required present, 1 otherwise.  |
+| `--skip-deps`     | Skip dependency check / install. Useful in CI or when deps are managed elsewhere. |
+| `--skip-lazygit`  | Skip the "set Neovim as lazygit editor" prompt.                       |
+| `--copy`          | Copy instead of symlink. Edits to repo do **not** propagate.          |
+| `--force`         | Overwrite existing target (no backup).                                |
+| `--dry-run`       | Print every action without executing.                                 |
+| `-h` / `--help`   | Show help.                                                            |
 
-Existing config is auto-backed up to `~/.config/nvim.bak.YYYYMMDD-HHMMSS`
-unless `--force` is given.
+Existing config at `~/.config/nvim` is auto-backed up to
+`~/.config/nvim.bak.YYYYMMDD-HHMMSS` unless `--force` is given.
+
+Re-running with the same module is **idempotent** — when the symlink already
+points to the right place, the install step is a no-op.
 
 ## Key bindings (top-level)
 
@@ -173,11 +199,6 @@ unless `--force` is given.
 | n    | `<leader>mp`   | Markdown preview (toggle)    |
 | n    | `<leader>mt`   | Markdown preview in tab      |
 | n    | `<leader>md`   | md-render demo               |
-
-## Reference
-
-Design notes and rationale:
-[learning/topics/engineering/terminal-dev-toolkit.md](https://github.com/yuchou87/learning/blob/main/topics/engineering/terminal-dev-toolkit.md)
 
 ## License
 

@@ -36,30 +36,49 @@ dotfiles/
 git clone https://github.com/yuchou87/dotfiles.git ~/Github/yuchou87/dotfiles
 cd ~/Github/yuchou87/dotfiles
 
-# 2. 预览 install.sh 会做什么
-./install.sh --dry-run
+# 2. 仅检查依赖状态(不安装)
+./install.sh --check
 
-# 3. 安装(symlink 到 ~/.config)
+# 3. 安装。脚本会:
+#    a. 检查依赖,缺失的提示用 brew 安装(macOS)
+#    b. symlink nvim/ → ~/.config/nvim(已存在的旧配置自动备份)
+#    c. 检测到 lazygit 时,提示是否把 nvim 设为默认编辑器
 ./install.sh
 
 # 4. 启动 Neovim,lazy.nvim 自动引导并同步插件
 nvim
 
 # 5. 等 :Lazy 全绿后,验证:
-#    :checkhealth      (mason / lsp / treesitter 段)
+#    :checkhealth      (mason / lsp / treesitter / dap 段)
 #    :Mason            (所有 LSP / 工具已装)
 #    :LspInfo          (当前 buffer 的 LSP 状态)
 ```
 
 ## 系统要求
 
-- **Neovim ≥ 0.10** (md-render.nvim 要求) — `brew install neovim`
+`./install.sh --check` 会逐项报告下列依赖状态,在 macOS 上自动用
+`brew install` 帮你装缺的。
+
+| 级别 | 工具                | 用途                                              |
+|------|---------------------|---------------------------------------------------|
+| 必装 | `nvim` ≥ 0.10       | md-render.nvim 最低版本                           |
+| 必装 | `git`               | lazy.nvim 拉插件                                  |
+| 推荐 | `ripgrep` (`rg`)    | Snacks 全局 grep + Treesitter selectoid           |
+| 推荐 | `fd`                | 快速文件查找                                      |
+| 推荐 | `lazygit`           | `<leader>gg` 在 nvim 内开 lazygit                 |
+| 推荐 | `fzf`               | Snacks 模糊匹配后端(可选)                        |
+| 推荐 | `node`              | Vue language server / mermaid-cli / js-debug      |
+| 可选 | `ffmpeg`            | md-render 图片格式转换                            |
+| 可选 | `imagemagick`       | md-render 图片格式转换                            |
+| 可选 | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid 图渲染            |
+
+下面这些是一次性手工配置(脚本不接管):
+
 - **Nerd Font** 显示图标 — `brew install --cask font-jetbrains-mono-nerd-font`
-- **ripgrep + fd** — `brew install ripgrep fd`
-- **Node.js / Go / Rust / Python** 按你实际用的语言装工具链
+  然后在 Ghostty / iTerm2 等终端里设为默认字体
+- **语言工具链** (Go / Rust / Python) 按你实际用的语言安装,LSP 才能找到编译器
 - **支持 Kitty graphics 协议的终端**(md-render 显示图片/Mermaid 需要):
   Ghostty / WezTerm / Kitty。iTerm2 / Terminal.app 会降级到纯文本预览。
-- **md-render 可选依赖**: `brew install ffmpeg imagemagick && npm i -g @mermaid-js/mermaid-cli`
 
 ## 语言支持
 
@@ -92,17 +111,23 @@ nvim
 DAP UI 在调试启动时自动弹出(变量 / 作用域 / 断点 / 调用栈 / REPL / 控制台
 面板),终止时自动关闭。手动 toggle 用 `<leader>du`。
 
-## 安装模式
+## install.sh 命令行参数
 
-| 模式      | 命令                          | 说明                                       |
-|-----------|-------------------------------|--------------------------------------------|
-| Symlink   | `./install.sh`                | 默认。`git pull` 改动立即生效。           |
-| Copy      | `./install.sh --copy`         | 一次性拷贝,改 repo 不会同步到 ~/.config。 |
-| Force     | `./install.sh --force`        | 覆盖现有目标(不备份)。                  |
-| Dry run   | `./install.sh --dry-run`      | 仅打印动作。                              |
+| 参数              | 作用                                                                  |
+|-------------------|-----------------------------------------------------------------------|
+| (无)              | 默认。检查依赖 → 提示装缺的 → symlink 配置 → lazygit 编辑器提示。     |
+| `--check`         | 仅做依赖报告。必装齐全 exit 0,缺则 exit 1。                          |
+| `--skip-deps`     | 跳过依赖检查/安装。CI 或依赖另外管理时用。                            |
+| `--skip-lazygit`  | 跳过"把 nvim 设为 lazygit 编辑器"的提示。                             |
+| `--copy`          | 拷贝而不是 symlink。改 repo 不会同步到 ~/.config。                    |
+| `--force`         | 覆盖现有目标(不备份)。                                              |
+| `--dry-run`       | 仅打印每一步动作。                                                    |
+| `-h` / `--help`   | 查看帮助。                                                            |
 
 如果 `~/.config/nvim` 已存在,默认会自动备份成
 `~/.config/nvim.bak.YYYYMMDD-HHMMSS`,除非加 `--force`。
+
+重复跑同一个 module 是**幂等的** — symlink 已正确指向时安装步骤跳过。
 
 ## 主要快捷键
 
@@ -171,11 +196,6 @@ DAP UI 在调试启动时自动弹出(变量 / 作用域 / 断点 / 调用栈 / 
 | n    | `<leader>mp`   | Markdown 预览(toggle)         |
 | n    | `<leader>mt`   | Markdown 预览(新 tab)         |
 | n    | `<leader>md`   | md-render demo                |
-
-## 设计说明
-
-详细的技术决策和取舍:
-[learning/topics/engineering/terminal-dev-toolkit.md](https://github.com/yuchou87/learning/blob/main/topics/engineering/terminal-dev-toolkit.md)
 
 ## License
 
