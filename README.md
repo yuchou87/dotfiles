@@ -73,6 +73,7 @@ prompts to `brew install` whatever is missing on macOS.
 | recommended | `helix` (`hx`)      | Alternative editor (lazygit ↔ helix workflow)  |
 | recommended | `ghostty`           | Terminal w/ Kitty graphics (md-render images)  |
 | recommended | JetBrainsMono Nerd Font | Icons in Snacks / blink.cmp / DAP UI       |
+| recommended | Sarasa Term SC Nerd | CJK fallback for the Ghostty config (manual install — see notes below) |
 | optional    | `ffmpeg`            | md-render image format conversion              |
 | optional    | `imagemagick`       | md-render image format conversion              |
 | optional    | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid diagram render |
@@ -87,8 +88,18 @@ Auto-installed by `install.sh`:
 Not handled by `install.sh` (intentional):
 
 - **Language toolchains** (Go / Rust / Python) — install per-project on demand.
-- **Setting Nerd Font as terminal font** — open your terminal preferences
-  and pick `JetBrainsMono Nerd Font` after install.
+- **Setting Nerd Font as terminal font** — Ghostty's font is set via
+  `ghostty/config` (already done). For other terminals, pick
+  `JetBrainsMono Nerd Font` in their preferences.
+- **Sarasa Term SC Nerd font** — used by `ghostty/config` for CJK
+  rendering. Not in core Homebrew. Install via:
+  ```bash
+  brew tap laishulu/homebrew
+  brew install --cask laishulu/homebrew/font-sarasa-nerd
+  ```
+  Or download from <https://github.com/laishulu/Sarasa-Mono-Nerd>.
+  Without it, Ghostty falls back to JetBrainsMono for CJK
+  (which lacks Chinese glyphs — you'll see boxes).
 
 Optionally handled with explicit consent:
 

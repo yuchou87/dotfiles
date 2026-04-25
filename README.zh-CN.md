@@ -72,6 +72,7 @@ nvim
 | 推荐 | `helix` (`hx`)      | 备用编辑器(lazygit ↔ helix 工作流)              |
 | 推荐 | `ghostty`           | 终端 + Kitty graphics(md-render 显示图片需要)     |
 | 推荐 | JetBrainsMono Nerd Font | Snacks / blink.cmp / DAP UI 图标渲染          |
+| 推荐 | Sarasa Term SC Nerd | Ghostty 配置的中日韩字体回退(手动装,见下)       |
 | 可选 | `ffmpeg`            | md-render 图片格式转换                            |
 | 可选 | `imagemagick`       | md-render 图片格式转换                            |
 | 可选 | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid 图渲染            |
@@ -85,8 +86,17 @@ nvim
 `install.sh` 故意**不**接管的:
 
 - **语言工具链** (Go / Rust / Python) — 按项目按需安装
-- **把 Nerd Font 设为终端字体** — 装好后在终端 Preferences 选
+- **把 Nerd Font 设为终端字体** — Ghostty 的字体已在 `ghostty/config`
+  里指定(自动生效)。其他终端需要手动在 Preferences 选
   `JetBrainsMono Nerd Font`
+- **Sarasa Term SC Nerd 字体** — `ghostty/config` 用它做中日韩回退,
+  不在 Homebrew 主仓。安装方式:
+  ```bash
+  brew tap laishulu/homebrew
+  brew install --cask laishulu/homebrew/font-sarasa-nerd
+  ```
+  或从 <https://github.com/laishulu/Sarasa-Mono-Nerd> 直接下载。
+  不装的话,Ghostty 中文会回落到 JetBrainsMono(缺中文字形,显示成方块)。
 
 需要你**显式确认**才会做的(默认拒绝,安全护栏):
 

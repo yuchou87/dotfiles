@@ -1,18 +1,189 @@
 # Ghostty configuration
 # Reference: https://ghostty.org/docs/config/reference
 
-# ---- md-render.nvim image / Mermaid display ----
-# md-render uses Kitty graphics protocol. Bumping the storage cap lets
-# previews of large rendered Markdown (with images / Mermaid output) stay
-# in scrollback without eviction.
+# =========================
+# Readability (长期不累)
+# =========================
+
+# 前景与背景的最低对比度下限 (1 到 21)
+minimum-contrast = 3
+
+# =========================
+# Fonts (Plan B)
+# 英文: JetBrainsMono Nerd Font
+# 中文与全角: Sarasa Term SC Nerd (通过 codepoint map 强制映射)
+# =========================
+
+# 清空之前的 font-family 列表,避免旧配置干扰
+font-family = ""
+font-family = "JetBrainsMono Nerd Font"
+font-family = "Sarasa Term SC Nerd"
+
+# Ghostty 支持 0.5pt
+font-size = 14
+
+# CJK + 全角范围强制使用 Sarasa Term SC Nerd
+font-codepoint-map = U+3000-U+303F,U+3040-U+30FF,U+3400-U+4DBF,U+4E00-U+9FFF,U+F900-U+FAFF,U+FF00-U+FFEF=Sarasa Term SC Nerd
+
+# =========================
+# md-render.nvim 支持
+# =========================
+
+# md-render 走 Kitty graphics 协议显示图片 / Mermaid。
+# 拉大缓存上限,避免长 Markdown 在 scrollback 里被早早淘汰。
 image-storage-limit = 320000000
 
-# ---- Font (uncomment once JetBrainsMono Nerd Font is installed) ----
-# font-family = "JetBrainsMono Nerd Font"
-# font-size = 14
+# =========================
+# Window (更像现代 IDE 的终端面板)
+# =========================
 
-# ---- Sensible defaults ----
-window-padding-x = 4
-window-padding-y = 4
-copy-on-select = clipboard
+# 适度留白,减轻压迫感
+window-padding-x = 10
+window-padding-y = 10
+window-padding-balance = true
+
+# 新窗口是否继承上个窗口的字号
+# 设为 false 更稳定,始终使用 font-size
+window-inherit-font-size = false
+
+# 新 tab/split 继承工作目录
+window-inherit-working-directory = true
+
+# 保存与恢复窗口状态 (tabs / splits / 位置等)
 window-save-state = always
+
+# 新 tab 插入在当前 tab 之后 (更符合大多数人的心理预期)
+window-new-tab-position = current
+
+# Undo 可用时间,默认 5s,这里拉长一点便于"误关可救"
+undo-timeout = 15s
+
+# 长输出场景更耐用 (单位 bytes,包含当前屏幕)
+scrollback-limit = 200000000
+
+# =========================
+# Shell Integration
+# =========================
+
+shell-integration = detect
+
+# 提示符处 Option+Click 移动光标 (依赖 shell integration)
+cursor-click-to-move = true
+
+# =========================
+# Mouse (更现代的鼠标行为)
+# =========================
+
+# 右键: 有选区复制,无选区粘贴
+right-click-action = copy-or-paste
+
+# 不自动复制选区 (更贴近"先选中,再复制"的 GUI 习惯)
+copy-on-select = false
+
+# 复制后清掉选区高亮
+selection-clear-on-copy = true
+
+# 开始输入时清掉选区
+selection-clear-on-typing = true
+
+# 分屏时鼠标悬停聚焦
+focus-follows-mouse = true
+
+# 输入时隐藏鼠标
+mouse-hide-while-typing = true
+
+# Shift 始终用于扩展选择,禁止运行程序用 XTSHIFTESCAPE 覆盖
+mouse-shift-capture = never
+
+# 滚轮速度
+mouse-scroll-multiplier = 3
+
+# =========================
+# Clipboard (安全与耐用)
+# =========================
+
+# 多行或可疑粘贴需要确认,防止误执行
+clipboard-paste-protection = true
+
+# 程序读写系统剪贴板 (OSC 52)
+clipboard-read = ask
+clipboard-write = allow
+
+# 复制到剪贴板时裁剪行尾空格 (降低复制命令时的隐性坑)
+clipboard-trim-trailing-spaces = true
+
+# =========================
+# macOS (Option 更现代)
+# 左 Option 当 Alt,右 Option 保留系统特殊字符输入
+# =========================
+
+macos-option-as-alt = left
+
+# =========================
+# Keybinds (现代键盘体验)
+# =========================
+
+# 基础编辑
+keybind = performable:cmd+c=copy_to_clipboard
+keybind = cmd+v=paste_from_clipboard
+keybind = cmd+a=select_all
+
+# 清屏
+keybind = cmd+k=clear_screen
+
+# Command Palette (macOS 默认也是 cmd+shift+p,这里显式写出便于迁移与一致性)
+keybind = cmd+shift+p=toggle_command_palette
+
+# Tabs
+keybind = cmd+t=new_tab
+keybind = cmd+w=close_tab
+keybind = cmd+shift+[=previous_tab
+keybind = cmd+shift+]=next_tab
+
+# Splits
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+
+# Split 焦点移动
+keybind = cmd+opt+left=goto_split:left
+keybind = cmd+opt+right=goto_split:right
+keybind = cmd+opt+up=goto_split:up
+keybind = cmd+opt+down=goto_split:down
+
+# 配置打开与重载
+keybind = cmd+,=open_config
+keybind = cmd+shift+,=reload_config
+
+# 关闭窗口
+keybind = cmd+shift+w=close_window
+
+# 撤销与重做 (可撤销关闭 tab/split/window 等)
+keybind = cmd+z=undo
+keybind = cmd+shift+z=redo
+
+# 导出整个 scrollback 到临时文件并打开 (用于搜索 / 归档长输出)
+keybind = cmd+f=write_scrollback_file:open
+
+# 按提示符跳转 (依赖 shell integration)
+keybind = cmd+shift+up=jump_to_prompt:-1
+keybind = cmd+shift+down=jump_to_prompt:1
+
+# =========================
+# Quick Terminal (全局呼出)
+# =========================
+
+keybind = global:cmd+backquote=toggle_quick_terminal
+
+quick-terminal-position = top
+quick-terminal-screen = mouse
+quick-terminal-size = 35%
+quick-terminal-animation-duration = 0.12
+
+# 可选:链接预览 (信息密度会增加,先注释)
+# link-previews = osc8
+
+# =========================
+# Theme (Ghostty ≥ 1.0 内置 catppuccin 系列)
+# =========================
+
+theme = catppuccin-mocha.conf
