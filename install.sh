@@ -117,7 +117,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Optional deps (note only): md-render extras
 
 REQUIRED_DEPS="nvim git"
-RECOMMENDED_DEPS="rg fd lazygit fzf node hx ghostty nerdfont"
+RECOMMENDED_DEPS="rg fd lazygit fzf node hx ghostty nerdfont gh glow"
 OPTIONAL_DEPS="ffmpeg magick mmdc"
 
 # Map binary name -> brew formula / cask name (when they differ).

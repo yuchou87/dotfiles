@@ -73,6 +73,8 @@ nvim
 | 推荐 | `ghostty`           | 终端 + Kitty graphics(md-render 显示图片需要)     |
 | 推荐 | JetBrainsMono Nerd Font | Snacks / blink.cmp / DAP UI 图标渲染          |
 | 推荐 | Sarasa Term SC Nerd | Ghostty 配置的中日韩字体回退(手动装,见下)       |
+| 推荐 | `gh`                | GitHub CLI — 终端里管 PR / Issue / Release        |
+| 推荐 | `glow`              | 独立 Markdown 终端渲染器(`glow README.md`)       |
 | 可选 | `ffmpeg`            | md-render 图片格式转换                            |
 | 可选 | `imagemagick`       | md-render 图片格式转换                            |
 | 可选 | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid 图渲染            |

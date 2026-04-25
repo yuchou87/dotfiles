@@ -74,6 +74,8 @@ prompts to `brew install` whatever is missing on macOS.
 | recommended | `ghostty`           | Terminal w/ Kitty graphics (md-render images)  |
 | recommended | JetBrainsMono Nerd Font | Icons in Snacks / blink.cmp / DAP UI       |
 | recommended | Sarasa Term SC Nerd | CJK fallback for the Ghostty config (manual install — see notes below) |
+| recommended | `gh`                | GitHub CLI — PRs, issues, releases from the terminal |
+| recommended | `glow`              | Standalone Markdown renderer for shell (`glow README.md`) |
 | optional    | `ffmpeg`            | md-render image format conversion              |
 | optional    | `imagemagick`       | md-render image format conversion              |
 | optional    | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid diagram render |
