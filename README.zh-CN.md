@@ -23,7 +23,9 @@ dotfiles/
 │           ├── treesitter.lua    # 22 个 parser
 │           ├── format-lint.lua   # conform.nvim + nvim-lint
 │           ├── md-render.lua     # delphinus/md-render.nvim
-│           └── lang-rust.lua     # rustaceanvim
+│           ├── snacks.lua        # 文件搜索 / 终端 / lazygit / 通知 (folke/snacks.nvim)
+│           ├── dap.lua           # nvim-dap + dap-ui + 适配器 (Go/Python/JS-TS)
+│           └── lang-rust.lua     # rustaceanvim (Rust LSP + DAP via codelldb)
 └── README.md / README.zh-CN.md
 ```
 
@@ -76,6 +78,20 @@ nvim
 | docker-compose  | docker_compose_language_service             | prettierd            | yamlls schema  |
 | Markdown        | —                                           | prettierd            | markdownlint   |
 
+## 调试支持(DAP)
+
+首次启动时 Mason 自动安装下列适配器:
+
+| 语言     | 适配器             | 启动方式                                                                |
+|----------|--------------------|-------------------------------------------------------------------------|
+| Go       | delve              | 打开 `.go` → `<F5>`,nvim-dap-go 自动识别 test/main 配置。              |
+| Python   | debugpy            | 打开 `.py` → `<F5>`,nvim-dap-python 自动配置。                         |
+| JS / TS  | js-debug-adapter   | 打开 `.ts/.js` → `<F5>` 在 Node 下启动当前文件。                        |
+| Rust     | codelldb           | rustaceanvim 自动管理。打断点后 `:RustLsp debuggables` 选目标。         |
+
+DAP UI 在调试启动时自动弹出(变量 / 作用域 / 断点 / 调用栈 / REPL / 控制台
+面板),终止时自动关闭。手动 toggle 用 `<leader>du`。
+
 ## 安装模式
 
 | 模式      | 命令                          | 说明                                       |
@@ -92,21 +108,69 @@ nvim
 
 `<leader>` 是 `Space`。
 
+### 编辑器
+
 | 模式 | 按键              | 动作                          |
 |------|-------------------|-------------------------------|
 | n    | `<leader>w`       | 保存                          |
 | n    | `<leader>q`       | 退出                          |
 | n    | `<C-h/j/k/l>`     | 窗口跳转                      |
+| n    | `gnn / grn / grm` | Treesitter 增量选择           |
+
+### LSP
+
+| 模式 | 按键              | 动作                          |
+|------|-------------------|-------------------------------|
 | n    | `gd / gr / gi`    | 跳定义 / 查引用 / 查实现      |
 | n    | `K`               | 悬浮文档                      |
 | n    | `<leader>rn`      | 重命名                        |
 | n    | `<leader>ca`      | Code action                   |
 | n    | `[d / ]d`         | 上一个 / 下一个诊断           |
 | n    | `<leader>e`       | 诊断浮窗                      |
-| n    | `<leader>mp`      | Markdown 预览(toggle)         |
-| n    | `<leader>mt`      | Markdown 预览(新 tab)         |
-| n    | `<leader>md`      | md-render demo                |
-| n    | `gnn / grn / grm` | Treesitter 增量选择           |
+
+### Snacks(搜索 / 终端 / Git)
+
+| 模式 | 按键           | 动作                                      |
+|------|----------------|-------------------------------------------|
+| n    | `<leader>ff`   | 找文件                                    |
+| n    | `<leader>fg`   | 全局 grep                                 |
+| n    | `<leader>fb`   | Buffer 列表                               |
+| n    | `<leader>fr`   | 最近文件                                  |
+| n    | `<leader>fh`   | 帮助 tag                                  |
+| n    | `<leader>fc`   | 命令                                      |
+| n    | `<leader>fk`   | 快捷键                                    |
+| n    | `<leader>fd`   | 诊断列表                                  |
+| n    | `<leader>fs`   | LSP 符号                                  |
+| n    | `<leader>/`    | 当前 buffer 内 grep                       |
+| n    | `<leader>:`    | 命令历史                                  |
+| n    | `<leader>tt`   | 浮窗终端 toggle                           |
+| n    | `<leader>gg`   | lazygit(在 nvim 里)                       |
+| n    | `<leader>bd`   | 关闭 buffer(保留窗口)                     |
+| n,t  | `]] / [[`      | 下/上一个相同词出现位置                   |
+
+### 调试(nvim-dap)
+
+| 模式 | 按键           | 动作                                      |
+|------|----------------|-------------------------------------------|
+| n    | `<F5>`         | 继续 / 启动                               |
+| n    | `<F10>`        | 单步跨越                                  |
+| n    | `<F11>`        | 单步进入                                  |
+| n    | `<F12>`        | 单步退出                                  |
+| n    | `<leader>db`   | 切换断点                                  |
+| n    | `<leader>dB`   | 条件断点                                  |
+| n    | `<leader>dr`   | 打开 REPL                                 |
+| n    | `<leader>dl`   | 重跑上次配置                              |
+| n    | `<leader>dx`   | 终止                                      |
+| n    | `<leader>du`   | DAP UI 面板 toggle                        |
+| n,v  | `<leader>de`   | 求值光标处 / 选区                         |
+
+### Markdown
+
+| 模式 | 按键           | 动作                          |
+|------|----------------|-------------------------------|
+| n    | `<leader>mp`   | Markdown 预览(toggle)         |
+| n    | `<leader>mt`   | Markdown 预览(新 tab)         |
+| n    | `<leader>md`   | md-render demo                |
 
 ## 设计说明
 

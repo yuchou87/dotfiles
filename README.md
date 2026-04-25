@@ -24,7 +24,9 @@ dotfiles/
 │           ├── treesitter.lua    # 22 parsers
 │           ├── format-lint.lua   # conform.nvim + nvim-lint
 │           ├── md-render.lua     # delphinus/md-render.nvim
-│           └── lang-rust.lua     # rustaceanvim
+│           ├── snacks.lua        # picker / terminal / lazygit / notifier (folke/snacks.nvim)
+│           ├── dap.lua           # nvim-dap + dap-ui + adapters (Go/Python/JS-TS)
+│           └── lang-rust.lua     # rustaceanvim (Rust LSP + DAP via codelldb)
 └── README.md / README.zh-CN.md
 ```
 
@@ -77,6 +79,21 @@ nvim
 | docker-compose  | docker_compose_language_service           | prettierd            | yamlls schema  |
 | Markdown        | —                                         | prettierd            | markdownlint   |
 
+## Debugging (DAP)
+
+Adapters auto-installed via Mason on first launch:
+
+| Language     | Adapter            | How to start                                                            |
+|--------------|--------------------|-------------------------------------------------------------------------|
+| Go           | delve              | Open a `.go` file → `<F5>`. nvim-dap-go infers test/main config.        |
+| Python       | debugpy            | Open a `.py` file → `<F5>`. nvim-dap-python infers config.              |
+| JS / TS      | js-debug-adapter   | Open a `.ts/.js` file → `<F5>` to launch the file under Node.           |
+| Rust         | codelldb           | rustaceanvim handles automatically. Set breakpoint, `:RustLsp debuggables`. |
+
+DAP UI auto-opens on session start (panels for variables / scopes / breakpoints
+/ stack / repl / console) and closes on terminate. Toggle manually with
+`<leader>du`.
+
 ## Install modes
 
 | Mode      | Command                       | Notes                                      |
@@ -93,21 +110,69 @@ unless `--force` is given.
 
 `<leader>` is `Space`.
 
+### Editor
+
 | Mode | Keys              | Action                       |
 |------|-------------------|------------------------------|
 | n    | `<leader>w`       | Save                         |
 | n    | `<leader>q`       | Quit                         |
 | n    | `<C-h/j/k/l>`     | Window navigation            |
+| n    | `gnn / grn / grm` | Treesitter incremental sel.  |
+
+### LSP
+
+| Mode | Keys              | Action                       |
+|------|-------------------|------------------------------|
 | n    | `gd / gr / gi`    | Definition / refs / impl     |
 | n    | `K`               | Hover documentation          |
 | n    | `<leader>rn`      | Rename symbol                |
 | n    | `<leader>ca`      | Code action                  |
 | n    | `[d / ]d`         | Prev / next diagnostic       |
 | n    | `<leader>e`       | Diagnostic float             |
-| n    | `<leader>mp`      | Markdown preview (toggle)    |
-| n    | `<leader>mt`      | Markdown preview in tab      |
-| n    | `<leader>md`      | md-render demo               |
-| n    | `gnn / grn / grm` | Treesitter incremental sel.  |
+
+### Snacks (picker / terminal / git)
+
+| Mode | Keys           | Action                                    |
+|------|----------------|-------------------------------------------|
+| n    | `<leader>ff`   | Find files                                |
+| n    | `<leader>fg`   | Live grep                                 |
+| n    | `<leader>fb`   | Buffers                                   |
+| n    | `<leader>fr`   | Recent files                              |
+| n    | `<leader>fh`   | Help tags                                 |
+| n    | `<leader>fc`   | Commands                                  |
+| n    | `<leader>fk`   | Keymaps                                   |
+| n    | `<leader>fd`   | Diagnostics                               |
+| n    | `<leader>fs`   | LSP symbols                               |
+| n    | `<leader>/`    | Grep current buffer                       |
+| n    | `<leader>:`    | Command history                           |
+| n    | `<leader>tt`   | Toggle floating terminal                  |
+| n    | `<leader>gg`   | Lazygit (inside Neovim)                   |
+| n    | `<leader>bd`   | Delete buffer (keep window)               |
+| n,t  | `]] / [[`      | Next / prev word reference (highlight)    |
+
+### Debugging (nvim-dap)
+
+| Mode | Keys           | Action                                    |
+|------|----------------|-------------------------------------------|
+| n    | `<F5>`         | Continue / start                          |
+| n    | `<F10>`        | Step over                                 |
+| n    | `<F11>`        | Step into                                 |
+| n    | `<F12>`        | Step out                                  |
+| n    | `<leader>db`   | Toggle breakpoint                         |
+| n    | `<leader>dB`   | Conditional breakpoint                    |
+| n    | `<leader>dr`   | Open REPL                                 |
+| n    | `<leader>dl`   | Run last config                           |
+| n    | `<leader>dx`   | Terminate                                 |
+| n    | `<leader>du`   | Toggle DAP UI                             |
+| n,v  | `<leader>de`   | Eval expression under cursor / selection  |
+
+### Markdown
+
+| Mode | Keys           | Action                       |
+|------|----------------|------------------------------|
+| n    | `<leader>mp`   | Markdown preview (toggle)    |
+| n    | `<leader>mt`   | Markdown preview in tab      |
+| n    | `<leader>md`   | md-render demo               |
 
 ## Reference
 
