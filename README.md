@@ -80,6 +80,40 @@ prompts to `brew install` whatever is missing on macOS.
 | optional    | `imagemagick`       | md-render image format conversion              |
 | optional    | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid diagram render |
 
+### Opt-in tiers (`--with-extras`, `--with-langs`)
+
+These are **not** prompted by default. Pass the flag to add them to the
+check + install run.
+
+#### `--with-extras` — modern CLI replacements
+
+| Tool      | Replaces                | Why                                            |
+|-----------|-------------------------|------------------------------------------------|
+| `bat`     | `cat`                   | Syntax highlighting, line numbers, paging      |
+| `eza`     | `ls`                    | Colors, git status, tree view (`eza -T`)       |
+| `delta`   | `git diff` pager        | Side-by-side diffs, syntax-highlighted         |
+| `zoxide`  | `cd`                    | Frecency-based smart directory jumps (`z foo`) |
+| `jq`      | (no replacement)        | JSON processor — universal swiss army knife    |
+| `yq`      | (no replacement)        | YAML / TOML / XML processor — `jq` for YAML    |
+| `tldr`    | `man`                   | Community-curated example-driven cheat sheets  |
+| `btm`     | `top` / `htop`          | Resource monitor (`bottom`), graphs, mouse     |
+
+#### `--with-langs` — language toolchains
+
+| Tool    | Purpose                                                                |
+|---------|------------------------------------------------------------------------|
+| `go`    | Go compiler (`go run / build / test`)                                  |
+| `rust`  | rustc + cargo (Rust toolchain via brew)                                |
+| `zig`   | Zig compiler                                                           |
+| `pnpm`  | npm-compatible package manager, faster + disk-efficient                |
+| `bun`   | All-in-one JS runtime + package manager                                |
+| `fnm`   | Fast node version manager (Rust). Replaces nvm.                        |
+| `mise`  | **Umbrella version manager** for go / node / python / rust / zig / ... |
+
+If you already use `mise` for everything, you can probably skip the
+individual entries — `mise install` handles per-project versions. The
+list is "what brew installs" not "what you should run as a daily driver".
+
 Auto-installed by `install.sh`:
 
 - All `required` + `recommended` items above (via `brew install` /
@@ -160,6 +194,8 @@ DAP UI auto-opens on session start (panels for variables / scopes / breakpoints
 | `--skip-deps`     | Skip dependency check / install. Useful in CI or when deps are managed elsewhere. |
 | `--skip-lazygit`  | Skip the "set Neovim as lazygit editor" prompt.                       |
 | `--skip-aliases`  | Skip the "append source line to ~/.zshrc / ~/.bashrc" prompt.         |
+| `--with-extras`   | Also check + install **modern CLI replacements** (`bat / eza / delta / zoxide / jq / yq / tldr / btm`). |
+| `--with-langs`    | Also check + install **language toolchains** (`go / rust / zig / pnpm / bun / fnm / mise`). |
 | `--copy`          | Copy instead of symlink. Edits to repo do **not** propagate.          |
 | `--force`         | Overwrite existing target (no backup).                                |
 | `--dry-run`       | Print every action without executing.                                 |

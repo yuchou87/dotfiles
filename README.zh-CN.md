@@ -79,6 +79,38 @@ nvim
 | 可选 | `imagemagick`       | md-render 图片格式转换                            |
 | 可选 | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid 图渲染            |
 
+### 可选层级(`--with-extras`、`--with-langs`)
+
+默认**不**提示。加 flag 才会进检查 + 安装流程。
+
+#### `--with-extras` — 现代 CLI 替代品
+
+| 工具      | 替代                    | 优势                                            |
+|-----------|-------------------------|-------------------------------------------------|
+| `bat`     | `cat`                   | 语法高亮、行号、自动分页                        |
+| `eza`     | `ls`                    | 彩色、git 状态、`eza -T` 树形视图               |
+| `delta`   | `git diff` pager        | 双栏 diff、语法高亮                             |
+| `zoxide`  | `cd`                    | 智能跳目录(`z foo` 跳到最近用过的 foo)        |
+| `jq`      | (无替代)                | JSON 万能处理器                                 |
+| `yq`      | (无替代)                | YAML / TOML / XML 处理器,YAML 版的 jq          |
+| `tldr`    | `man`                   | 社区维护的命令实例速查                          |
+| `btm`     | `top` / `htop`          | 资源监控(bottom),图表 + 鼠标支持              |
+
+#### `--with-langs` — 语言工具链
+
+| 工具    | 用途                                                                   |
+|---------|------------------------------------------------------------------------|
+| `go`    | Go 编译器 (`go run / build / test`)                                    |
+| `rust`  | rustc + cargo(Rust toolchain via brew)                                |
+| `zig`   | Zig 编译器                                                             |
+| `pnpm`  | npm 兼容的包管理器,更快、磁盘占用更少                                 |
+| `bun`   | 一体化 JS 运行时 + 包管理器                                            |
+| `fnm`   | 快速 node 版本管理器(Rust 写),替代 nvm                              |
+| `mise`  | **万用版本管理器**,统管 go / node / python / rust / zig / ...         |
+
+如果你已经用 `mise` 统管所有语言,可以只装 mise 跳过其他 — `mise install`
+按项目自动配版本。这个表是"brew 装什么",不是"你日常用什么"。
+
 `install.sh` 自动安装的内容:
 
 - 上表所有 `必装` + `推荐` 项(通过 `brew install` / `brew install --cask` /
@@ -156,6 +188,8 @@ DAP UI 在调试启动时自动弹出(变量 / 作用域 / 断点 / 调用栈 / 
 | `--skip-deps`     | 跳过依赖检查/安装。CI 或依赖另外管理时用。                            |
 | `--skip-lazygit`  | 跳过"把 nvim 设为 lazygit 编辑器"的提示。                             |
 | `--skip-aliases`  | 跳过"追加 source 行到 ~/.zshrc / ~/.bashrc"的提示。                   |
+| `--with-extras`   | 加上**现代 CLI 工具**(`bat / eza / delta / zoxide / jq / yq / tldr / btm`)。 |
+| `--with-langs`    | 加上**语言工具链**(`go / rust / zig / pnpm / bun / fnm / mise`)。   |
 | `--copy`          | 拷贝而不是 symlink。改 repo 不会同步到 ~/.config。                    |
 | `--force`         | 覆盖现有目标(不备份)。                                              |
 | `--dry-run`       | 仅打印每一步动作。                                                    |

@@ -8,6 +8,8 @@
 #   ./install.sh --skip-deps      # install configs without touching system deps
 #   ./install.sh --skip-lazygit   # don't offer to set up lazygit editor
 #   ./install.sh --skip-aliases   # don't offer to add shell alias source line
+#   ./install.sh --with-extras    # also install modern CLI tools (bat/eza/delta/...)
+#   ./install.sh --with-langs     # also install language toolchains (go/rust/zig/bun/...)
 #   ./install.sh --copy nvim      # copy instead of symlink
 #   ./install.sh --force nvim     # overwrite existing target without backup
 #   ./install.sh --dry-run nvim   # show actions without executing
@@ -58,6 +60,8 @@ CHECK_ONLY=0
 SKIP_DEPS=0
 SKIP_LAZYGIT=0
 SKIP_ALIASES=0
+WITH_EXTRAS=0
+WITH_LANGS=0
 ARGS=()
 
 while [ $# -gt 0 ]; do
@@ -69,8 +73,10 @@ while [ $# -gt 0 ]; do
     --skip-deps)    SKIP_DEPS=1; shift ;;
     --skip-lazygit) SKIP_LAZYGIT=1; shift ;;
     --skip-aliases) SKIP_ALIASES=1; shift ;;
+    --with-extras)  WITH_EXTRAS=1; shift ;;
+    --with-langs)   WITH_LANGS=1; shift ;;
     -h|--help)
-      sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     -*)
@@ -120,6 +126,13 @@ REQUIRED_DEPS="nvim git"
 RECOMMENDED_DEPS="rg fd lazygit fzf node hx ghostty nerdfont gh glow"
 OPTIONAL_DEPS="ffmpeg magick mmdc"
 
+# Opt-in tiers (require --with-extras / --with-langs to be checked + installed).
+# EXTRAS: modern replacements for classic Unix tools.
+# LANGS:  language toolchains for polyglot work; mise is the recommended
+#         umbrella version manager for go/node/python/rust/zig in one tool.
+EXTRAS_DEPS="bat eza delta zoxide jq yq tldr btm"
+LANGS_DEPS="go rustc zig pnpm bun fnm mise"
+
 # Map binary name -> brew formula / cask name (when they differ).
 # Empty string => not installable via brew (handled separately, e.g. mmdc via npm).
 brew_formula_for() {
@@ -132,6 +145,14 @@ brew_formula_for() {
     hx)       echo "helix" ;;
     ghostty)  echo "--cask ghostty" ;;
     nerdfont) echo "--cask font-jetbrains-mono-nerd-font" ;;
+
+    # extras tier
+    delta)    echo "git-delta" ;;
+    btm)      echo "bottom" ;;
+
+    # langs tier
+    rustc)    echo "rust" ;;
+
     *)        echo "$1" ;;
   esac
 }
@@ -160,8 +181,15 @@ have_ghostty() {
 # Captures both stdout and stderr because some tools (ffmpeg) print to stderr.
 get_version() {
   local bin="$1"
+
+  # Some tools don't accept --version; map them to the right subcommand.
+  local arg="--version"
+  case "$bin" in
+    go|zig) arg="version" ;;
+  esac
+
   local out=""
-  out="$("$bin" --version 2>&1 || true)"
+  out="$("$bin" "$arg" 2>&1 || true)"
   # First line only
   local first="${out%%$'\n'*}"
   if [[ "$first" =~ ([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
@@ -186,6 +214,8 @@ nvim_version_ok() {
 MISSING_REQUIRED=""
 MISSING_RECOMMENDED=""
 MISSING_OPTIONAL=""
+MISSING_EXTRAS=""
+MISSING_LANGS=""
 
 check_one() {
   local bin="$1" group="$2"
@@ -212,6 +242,8 @@ check_one() {
       required)    MISSING_REQUIRED="$MISSING_REQUIRED $bin"; miss "$bin (required)" ;;
       recommended) MISSING_RECOMMENDED="$MISSING_RECOMMENDED $bin"; warn "$bin (recommended)" ;;
       optional)    MISSING_OPTIONAL="$MISSING_OPTIONAL $bin"; note "$bin (optional)" ;;
+      extras)      MISSING_EXTRAS="$MISSING_EXTRAS $bin"; note "$bin (extra)" ;;
+      langs)       MISSING_LANGS="$MISSING_LANGS $bin"; note "$bin (lang)" ;;
     esac
   fi
 }
@@ -233,6 +265,16 @@ check_deps() {
 
   for d in $RECOMMENDED_DEPS; do check_one "$d" recommended; done
   for d in $OPTIONAL_DEPS;    do check_one "$d" optional; done
+
+  if [ $WITH_EXTRAS -eq 1 ]; then
+    head "Extras (modern CLI replacements)"
+    for d in $EXTRAS_DEPS; do check_one "$d" extras; done
+  fi
+
+  if [ $WITH_LANGS -eq 1 ]; then
+    head "Languages (toolchains)"
+    for d in $LANGS_DEPS; do check_one "$d" langs; done
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -464,6 +506,20 @@ fi
 if [ -n "${MISSING_OPTIONAL// }" ] && [ $SKIP_DEPS -eq 0 ]; then
   note "Optional (md-render image/Mermaid render):${MISSING_OPTIONAL}"
   note "Install with: ./install.sh --check first to see what's missing"
+  echo
+fi
+
+# 5b. Extras tier (--with-extras only)
+if [ $WITH_EXTRAS -eq 1 ] && [ -n "${MISSING_EXTRAS// }" ] && [ $SKIP_DEPS -eq 0 ]; then
+  warn "Extras missing:${MISSING_EXTRAS}"
+  install_deps_for "$MISSING_EXTRAS"
+  echo
+fi
+
+# 5c. Langs tier (--with-langs only)
+if [ $WITH_LANGS -eq 1 ] && [ -n "${MISSING_LANGS// }" ] && [ $SKIP_DEPS -eq 0 ]; then
+  warn "Language toolchains missing:${MISSING_LANGS}"
+  install_deps_for "$MISSING_LANGS"
   echo
 fi
 
