@@ -9,23 +9,24 @@
 
 ```
 dotfiles/
-├── install.sh                    # 幂等的 symlink 安装脚本
+├── install.sh                    # 依赖检查 + symlink 安装脚本
 ├── nvim/                         # → ~/.config/nvim
 │   ├── init.lua
 │   └── lua/
-│       ├── config/
-│       │   ├── lazy.lua          # lazy.nvim 引导
-│       │   ├── options.lua       # vim.opt.* + filetype 覆盖
-│       │   └── keymaps.lua       # 全局快捷键(LSP 快捷键在 plugins/lsp.lua)
+│       ├── config/{lazy,options,keymaps}.lua
 │       └── plugins/
 │           ├── lsp.lua           # mason + nvim-lspconfig (9 个 LSP)
 │           ├── completion.lua    # blink.cmp
 │           ├── treesitter.lua    # 22 个 parser
 │           ├── format-lint.lua   # conform.nvim + nvim-lint
 │           ├── md-render.lua     # delphinus/md-render.nvim
-│           ├── snacks.lua        # 文件搜索 / 终端 / lazygit / 通知 (folke/snacks.nvim)
-│           ├── dap.lua           # nvim-dap + dap-ui + 适配器 (Go/Python/JS-TS)
-│           └── lang-rust.lua     # rustaceanvim (Rust LSP + DAP via codelldb)
+│           ├── snacks.lua        # 文件搜索 / 终端 / lazygit / 通知
+│           ├── dap.lua           # nvim-dap + 适配器 (Go / Python / JS-TS)
+│           └── lang-rust.lua     # rustaceanvim
+├── ghostty/                      # → ~/.config/ghostty
+│   └── config                    # Kitty graphics 已开(md-render 显示图片)
+├── zsh/                          # 可选 shell 别名(不自动 source)
+│   └── aliases.zsh               # gt / lg / v
 └── README.md / README.zh-CN.md
 ```
 
@@ -66,19 +67,28 @@ nvim
 | 推荐 | `ripgrep` (`rg`)    | Snacks 全局 grep + Treesitter selectoid           |
 | 推荐 | `fd`                | 快速文件查找                                      |
 | 推荐 | `lazygit`           | `<leader>gg` 在 nvim 内开 lazygit                 |
-| 推荐 | `fzf`               | Snacks 模糊匹配后端(可选)                        |
+| 推荐 | `fzf`               | Snacks 模糊匹配后端                                |
 | 推荐 | `node`              | Vue language server / mermaid-cli / js-debug      |
+| 推荐 | `helix` (`hx`)      | 备用编辑器(lazygit ↔ helix 工作流)              |
+| 推荐 | `ghostty`           | 终端 + Kitty graphics(md-render 显示图片需要)     |
+| 推荐 | JetBrainsMono Nerd Font | Snacks / blink.cmp / DAP UI 图标渲染          |
 | 可选 | `ffmpeg`            | md-render 图片格式转换                            |
 | 可选 | `imagemagick`       | md-render 图片格式转换                            |
 | 可选 | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid 图渲染            |
 
-下面这些是一次性手工配置(脚本不接管):
+`install.sh` 自动安装的内容:
 
-- **Nerd Font** 显示图标 — `brew install --cask font-jetbrains-mono-nerd-font`
-  然后在 Ghostty / iTerm2 等终端里设为默认字体
-- **语言工具链** (Go / Rust / Python) 按你实际用的语言安装,LSP 才能找到编译器
-- **支持 Kitty graphics 协议的终端**(md-render 显示图片/Mermaid 需要):
-  Ghostty / WezTerm / Kitty。iTerm2 / Terminal.app 会降级到纯文本预览。
+- 上表所有 `必装` + `推荐` 项(通过 `brew install` / `brew install --cask` /
+  `npm install -g`)
+- 可选项目仅报告状态,需自行安装
+
+`install.sh` 故意**不**接管的:
+
+- **语言工具链** (Go / Rust / Python) — 按项目按需安装
+- **把 Nerd Font 设为终端字体** — 装好后在终端 Preferences 选
+  `JetBrainsMono Nerd Font`
+- **修改你的 `~/.zshrc`** — `zsh/aliases.zsh` 提供但不自动 source,
+  脚本会打印 source 指令,你决定要不要加进 `.zshrc`
 
 ## 语言支持
 

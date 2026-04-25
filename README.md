@@ -10,23 +10,24 @@ language support and live Markdown rendering.
 
 ```
 dotfiles/
-├── install.sh                    # idempotent symlink installer
+├── install.sh                    # dependency check + symlink installer
 ├── nvim/                         # → ~/.config/nvim
 │   ├── init.lua
 │   └── lua/
-│       ├── config/
-│       │   ├── lazy.lua          # lazy.nvim bootstrap
-│       │   ├── options.lua       # vim.opt.* + filetype overrides
-│       │   └── keymaps.lua       # global keys (LSP keys live in plugins/lsp.lua)
+│       ├── config/{lazy,options,keymaps}.lua
 │       └── plugins/
 │           ├── lsp.lua           # mason + nvim-lspconfig (9 LSPs)
 │           ├── completion.lua    # blink.cmp
 │           ├── treesitter.lua    # 22 parsers
 │           ├── format-lint.lua   # conform.nvim + nvim-lint
 │           ├── md-render.lua     # delphinus/md-render.nvim
-│           ├── snacks.lua        # picker / terminal / lazygit / notifier (folke/snacks.nvim)
-│           ├── dap.lua           # nvim-dap + dap-ui + adapters (Go/Python/JS-TS)
-│           └── lang-rust.lua     # rustaceanvim (Rust LSP + DAP via codelldb)
+│           ├── snacks.lua        # picker / terminal / lazygit / notifier
+│           ├── dap.lua           # nvim-dap + adapters (Go / Python / JS-TS)
+│           └── lang-rust.lua     # rustaceanvim
+├── ghostty/                      # → ~/.config/ghostty
+│   └── config                    # Kitty graphics enabled (md-render images)
+├── zsh/                          # opt-in shell aliases (not auto-sourced)
+│   └── aliases.zsh               # gt / lg / v
 └── README.md / README.zh-CN.md
 ```
 
@@ -67,19 +68,29 @@ prompts to `brew install` whatever is missing on macOS.
 | recommended | `ripgrep` (`rg`)    | Snacks live grep + Treesitter selectoid        |
 | recommended | `fd`                | Fast file finder                               |
 | recommended | `lazygit`           | `<leader>gg` integration in Neovim             |
-| recommended | `fzf`               | Snacks fuzzy backend (optional but nice)       |
+| recommended | `fzf`               | Snacks fuzzy backend                           |
 | recommended | `node`              | Vue language server / mermaid-cli / js-debug   |
+| recommended | `helix` (`hx`)      | Alternative editor (lazygit ↔ helix workflow)  |
+| recommended | `ghostty`           | Terminal w/ Kitty graphics (md-render images)  |
+| recommended | JetBrainsMono Nerd Font | Icons in Snacks / blink.cmp / DAP UI       |
 | optional    | `ffmpeg`            | md-render image format conversion              |
 | optional    | `imagemagick`       | md-render image format conversion              |
 | optional    | `@mermaid-js/mermaid-cli` (`mmdc`) | md-render Mermaid diagram render |
 
-Additional one-time setup (not auto-installed):
+Auto-installed by `install.sh`:
 
-- **Nerd Font** for icons — `brew install --cask font-jetbrains-mono-nerd-font`
-  then set as terminal font in Ghostty / iTerm2 / etc.
-- **Language toolchains** (Go / Rust / Python) for the LSPs to find their compilers
-- **Kitty graphics protocol terminal** for md-render image / Mermaid display:
-  Ghostty, WezTerm, or Kitty. iTerm2 / macOS Terminal fall back to plain text.
+- All `required` + `recommended` items above (via `brew install` /
+  `brew install --cask` / `npm install -g`).
+- For optional items, `install.sh --check` reports their status and
+  you can install manually.
+
+Not handled by `install.sh` (intentional):
+
+- **Language toolchains** (Go / Rust / Python) — install per-project on demand.
+- **Setting Nerd Font as terminal font** — open your terminal preferences
+  and pick `JetBrainsMono Nerd Font` after install.
+- **Modifying `~/.zshrc`** — `zsh/aliases.zsh` is provided but you must
+  `source` it manually (the script tells you how).
 
 ## Language support
 

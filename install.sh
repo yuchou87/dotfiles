@@ -22,13 +22,14 @@ set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 
-ALL_MODULES="nvim"
+ALL_MODULES="nvim ghostty"
 
 # resolve_module <name> -> echoes "src_rel:dst_rel", or empty on miss
 resolve_module() {
   case "$1" in
-    nvim)  echo "nvim:nvim" ;;
-    *)     echo "" ;;
+    nvim)    echo "nvim:nvim" ;;
+    ghostty) echo "ghostty:ghostty" ;;
+    *)       echo "" ;;
   esac
 }
 
@@ -113,27 +114,51 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Optional deps (note only): md-render extras
 
 REQUIRED_DEPS="nvim git"
-RECOMMENDED_DEPS="rg fd lazygit fzf node"
+RECOMMENDED_DEPS="rg fd lazygit fzf node hx ghostty nerdfont"
 OPTIONAL_DEPS="ffmpeg magick mmdc"
 
-# Map binary name -> brew formula (when they differ)
+# Map binary name -> brew formula / cask name (when they differ).
+# Empty string => not installable via brew (handled separately, e.g. mmdc via npm).
 brew_formula_for() {
   case "$1" in
     nvim)     echo "neovim" ;;
     rg)       echo "ripgrep" ;;
     node)     echo "node" ;;
     magick)   echo "imagemagick" ;;
-    mmdc)     echo "" ;;        # installed via npm, not brew
+    mmdc)     echo "" ;;                                       # via npm
+    hx)       echo "helix" ;;
+    ghostty)  echo "--cask ghostty" ;;
+    nerdfont) echo "--cask font-jetbrains-mono-nerd-font" ;;
     *)        echo "$1" ;;
   esac
 }
 
+# nerdfont detection is special: no `nerdfont` binary, check for font file.
+have_nerdfont() {
+  if [ "$OS" = "macos" ]; then
+    [ -f "$HOME/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf" ] || \
+    [ -f "/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf" ]
+  else
+    fc-list 2>/dev/null | grep -qi "JetBrainsMono Nerd Font"
+  fi
+}
+
+# ghostty detection: app exists in /Applications on macOS, or `ghostty` in PATH.
+have_ghostty() {
+  if [ "$OS" = "macos" ]; then
+    [ -d "/Applications/Ghostty.app" ] || command -v ghostty >/dev/null 2>&1
+  else
+    command -v ghostty >/dev/null 2>&1
+  fi
+}
+
 # Extract a semver-ish version from `<bin> --version` output.
 # Uses bash internal regex (no SIGPIPE risk, no external commands).
+# Captures both stdout and stderr because some tools (ffmpeg) print to stderr.
 get_version() {
   local bin="$1"
   local out=""
-  out="$("$bin" --version 2>/dev/null || true)"
+  out="$("$bin" --version 2>&1 || true)"
   # First line only
   local first="${out%%$'\n'*}"
   if [[ "$first" =~ ([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
@@ -161,10 +186,24 @@ MISSING_OPTIONAL=""
 
 check_one() {
   local bin="$1" group="$2"
-  if have "$bin"; then
-    local ver
-    ver="$(get_version "$bin")"
-    ok "$bin ${C_DIM}${ver}${C_RESET}"
+  local present=0 ver=""
+
+  # Specials: not a CLI binary
+  case "$bin" in
+    nerdfont) have_nerdfont && present=1 ;;
+    ghostty)  have_ghostty  && present=1 ;;
+    *)        have "$bin"   && present=1 ;;
+  esac
+
+  if [ $present -eq 1 ]; then
+    case "$bin" in
+      nerdfont) ok "JetBrainsMono Nerd Font ${C_DIM}installed${C_RESET}" ;;
+      ghostty)  ok "Ghostty ${C_DIM}installed${C_RESET}" ;;
+      *)
+        ver="$(get_version "$bin")"
+        ok "$bin ${C_DIM}${ver}${C_RESET}"
+        ;;
+    esac
   else
     case "$group" in
       required)    MISSING_REQUIRED="$MISSING_REQUIRED $bin"; miss "$bin (required)" ;;
@@ -204,34 +243,53 @@ install_deps_macos() {
     return 1
   fi
 
-  local formulas=""
+  # Split into formulas (brew install) and casks (brew install --cask)
+  local formulas="" casks=""
   for bin in $pkgs; do
     local f
     f="$(brew_formula_for "$bin")"
-    if [ -n "$f" ]; then
-      formulas="$formulas $f"
+    if [ -z "$f" ]; then
+      continue
     fi
+    case "$f" in
+      "--cask "*) casks="$casks ${f#--cask }" ;;
+      *)          formulas="$formulas $f" ;;
+    esac
   done
 
-  if [ -z "$formulas" ]; then
-    return 0
+  if [ -n "${formulas// }" ]; then
+    echo "Will run: brew install$formulas"
+    read -r -p "Proceed? [Y/n] " ans
+    case "$ans" in
+      n|N|no|NO) echo "Skipping formula install." ;;
+      *)
+        # shellcheck disable=SC2086
+        run brew install $formulas
+        ;;
+    esac
   fi
 
-  echo "Will run: brew install$formulas"
-  read -r -p "Proceed? [Y/n] " ans
-  case "$ans" in
-    n|N|no|NO) echo "Skipping brew install."; return 1 ;;
-  esac
-
-  # shellcheck disable=SC2086
-  run brew install $formulas
+  if [ -n "${casks// }" ]; then
+    echo "Will run: brew install --cask$casks"
+    read -r -p "Proceed? [Y/n] " ans
+    case "$ans" in
+      n|N|no|NO) echo "Skipping cask install." ;;
+      *)
+        # shellcheck disable=SC2086
+        run brew install --cask $casks
+        ;;
+    esac
+  fi
 
   # mmdc (mermaid-cli) installs via npm, not brew
   case " $pkgs " in
     *" mmdc "*)
       if have npm; then
-        echo "Installing @mermaid-js/mermaid-cli via npm..."
-        run npm install -g @mermaid-js/mermaid-cli
+        read -r -p "Install @mermaid-js/mermaid-cli via npm? [Y/n] " ans
+        case "$ans" in
+          n|N|no|NO) echo "Skipping mermaid-cli." ;;
+          *) run npm install -g @mermaid-js/mermaid-cli ;;
+        esac
       else
         warn "npm not available; skip mermaid-cli install"
       fi
@@ -415,7 +473,23 @@ echo
 # 7. lazygit editor prompt
 setup_lazygit
 
-# 8. Final hint
+# 8. Optional zsh aliases hint
+zsh_aliases="$SCRIPT_DIR/zsh/aliases.zsh"
+if [ -f "$zsh_aliases" ]; then
+  zshrc="$HOME/.zshrc"
+  if [ -f "$zshrc" ] && grep -qF "$zsh_aliases" "$zshrc" 2>/dev/null; then
+    :  # already sourced
+  else
+    head "Optional: shell aliases (gt / lg / v)"
+    echo "    Add to your ~/.zshrc:"
+    echo
+    echo "        source $zsh_aliases"
+    echo
+    echo "    Not sourced automatically — modifying ~/.zshrc is your call."
+  fi
+fi
+
+# 9. Final hint
 echo
 ok "Done."
 echo "    Launch nvim: lazy.nvim will sync plugins on first run."

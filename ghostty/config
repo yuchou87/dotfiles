@@ -1,0 +1,18 @@
+# Ghostty configuration
+# Reference: https://ghostty.org/docs/config/reference
+
+# ---- md-render.nvim image / Mermaid display ----
+# md-render uses Kitty graphics protocol. Bumping the storage cap lets
+# previews of large rendered Markdown (with images / Mermaid output) stay
+# in scrollback without eviction.
+image-storage-limit = 320000000
+
+# ---- Font (uncomment once JetBrainsMono Nerd Font is installed) ----
+# font-family = "JetBrainsMono Nerd Font"
+# font-size = 14
+
+# ---- Sensible defaults ----
+window-padding-x = 4
+window-padding-y = 4
+copy-on-select = clipboard
+window-save-state = always
