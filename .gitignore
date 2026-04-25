@@ -39,3 +39,29 @@ luac.out
 *.x86_64
 *.hex
 
+
+# ---- dotfiles-specific ----
+
+# Secrets / credentials (never commit)
+*.local
+*-secret.*
+*.secret
+.env
+.env.*
+!.env.example
+.netrc
+**/credentials
+**/.aws/credentials
+
+# Editor / OS swap
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Backup files created by install.sh
+*.bak.*
+
+# lazy.nvim lockfile lives elsewhere; ignore stray copies
+nvim/lazy-lock.json
