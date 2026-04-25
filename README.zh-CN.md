@@ -87,21 +87,23 @@ nvim
 
 | 工具      | 替代                    | 优势                                            |
 |-----------|-------------------------|-------------------------------------------------|
-| `bat`     | `cat`                   | 语法高亮、行号、自动分页                        |
-| `eza`     | `ls`                    | 彩色、git 状态、`eza -T` 树形视图               |
-| `delta`   | `git diff` pager        | 双栏 diff、语法高亮                             |
-| `zoxide`  | `cd`                    | 智能跳目录(`z foo` 跳到最近用过的 foo)        |
-| `jq`      | (无替代)                | JSON 万能处理器                                 |
-| `yq`      | (无替代)                | YAML / TOML / XML 处理器,YAML 版的 jq          |
-| `tldr`    | `man`                   | 社区维护的命令实例速查                          |
-| `btm`     | `top` / `htop`          | 资源监控(bottom),图表 + 鼠标支持              |
+| `bat`       | `cat`                   | 语法高亮、行号、自动分页                        |
+| `eza`       | `ls`                    | 彩色、git 状态、`eza -T` 树形视图               |
+| `delta`     | `git diff` pager        | 双栏 diff、语法高亮                             |
+| `zoxide`    | `cd`                    | 智能跳目录(`z foo` 跳到最近用过的 foo)        |
+| `jq`        | (无替代)                | JSON 万能处理器                                 |
+| `yq`        | (无替代)                | YAML / TOML / XML 处理器,YAML 版的 jq          |
+| `tldr`      | `man`                   | 社区维护的命令实例速查                          |
+| `btm`       | `top` / `htop`          | 资源监控(bottom),图表 + 鼠标支持              |
+| `hurl`      | (无替代)                | 用纯文本测 HTTP 请求 — 像住在终端里的 Postman   |
+| `hurl-lsp`  | —                       | `.hurl` 文件的 LSP(已自动接入 Neovim,见下)    |
 
 #### `--with-langs` — 语言工具链
 
 | 工具    | 用途                                                                   |
 |---------|------------------------------------------------------------------------|
 | `go`    | Go 编译器 (`go run / build / test`)                                    |
-| `rust`  | rustc + cargo(Rust toolchain via brew)                                |
+| `rust`  | rustc + cargo,通过 [rustup](https://rustup.rs) 官方脚本安装(**不**走 brew),装在 `~/.cargo` 下 |
 | `zig`   | Zig 编译器                                                             |
 | `pnpm`  | npm 兼容的包管理器,更快、磁盘占用更少                                 |
 | `bun`   | 一体化 JS 运行时 + 包管理器                                            |
@@ -110,6 +112,25 @@ nvim
 
 如果你已经用 `mise` 统管所有语言,可以只装 mise 跳过其他 — `mise install`
 按项目自动配版本。这个表是"brew 装什么",不是"你日常用什么"。
+
+#### 不走标准 brew install 的工具
+
+| 工具       | 安装路径                                                            |
+|------------|---------------------------------------------------------------------|
+| `rustc`    | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh -s -- -y` |
+| `hurl-lsp` | `brew tap testmind-hq/tap && brew install hurl-lsp`                 |
+
+`install.sh` 跑这两个时都会单独 prompt 确认。拒绝任意一个,剩下的安装流程继续。
+
+#### Hurl 在 Neovim 里的集成
+
+`hurl-lsp` 装好后,Neovim 配置已自动接入:
+
+- `vim.filetype.add` 把 `*.hurl` 映射到 `hurl` filetype
+- `hurl` Treesitter parser 在 `ensure_installed` 里
+- `lspconfig.hurl_lsp` 已注册 (cmd: `hurl-lsp`,filetype: `hurl`)
+
+打开任意 `.hurl` 文件 → 诊断、补全、hover 都和 Go / TS / Rust 走同一套 LSP 机制。
 
 `install.sh` 自动安装的内容:
 

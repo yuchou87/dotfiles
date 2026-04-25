@@ -89,21 +89,23 @@ check + install run.
 
 | Tool      | Replaces                | Why                                            |
 |-----------|-------------------------|------------------------------------------------|
-| `bat`     | `cat`                   | Syntax highlighting, line numbers, paging      |
-| `eza`     | `ls`                    | Colors, git status, tree view (`eza -T`)       |
-| `delta`   | `git diff` pager        | Side-by-side diffs, syntax-highlighted         |
-| `zoxide`  | `cd`                    | Frecency-based smart directory jumps (`z foo`) |
-| `jq`      | (no replacement)        | JSON processor — universal swiss army knife    |
-| `yq`      | (no replacement)        | YAML / TOML / XML processor — `jq` for YAML    |
-| `tldr`    | `man`                   | Community-curated example-driven cheat sheets  |
-| `btm`     | `top` / `htop`          | Resource monitor (`bottom`), graphs, mouse     |
+| `bat`       | `cat`                   | Syntax highlighting, line numbers, paging      |
+| `eza`       | `ls`                    | Colors, git status, tree view (`eza -T`)       |
+| `delta`     | `git diff` pager        | Side-by-side diffs, syntax-highlighted         |
+| `zoxide`    | `cd`                    | Frecency-based smart directory jumps (`z foo`) |
+| `jq`        | (no replacement)        | JSON processor — universal swiss army knife    |
+| `yq`        | (no replacement)        | YAML / TOML / XML processor — `jq` for YAML    |
+| `tldr`      | `man`                   | Community-curated example-driven cheat sheets  |
+| `btm`       | `top` / `htop`          | Resource monitor (`bottom`), graphs, mouse     |
+| `hurl`      | (no replacement)        | HTTP request testing in plain text — like Postman in your terminal |
+| `hurl-lsp`  | —                       | LSP for `.hurl` files (auto-wired into Neovim — see notes below) |
 
 #### `--with-langs` — language toolchains
 
 | Tool    | Purpose                                                                |
 |---------|------------------------------------------------------------------------|
 | `go`    | Go compiler (`go run / build / test`)                                  |
-| `rust`  | rustc + cargo (Rust toolchain via brew)                                |
+| `rust`  | rustc + cargo via [rustup](https://rustup.rs) (NOT brew — uses official `curl ... \| sh -s -- -y` script). Toolchain installed under `~/.cargo`. |
 | `zig`   | Zig compiler                                                           |
 | `pnpm`  | npm-compatible package manager, faster + disk-efficient                |
 | `bun`   | All-in-one JS runtime + package manager                                |
@@ -113,6 +115,27 @@ check + install run.
 If you already use `mise` for everything, you can probably skip the
 individual entries — `mise install` handles per-project versions. The
 list is "what brew installs" not "what you should run as a daily driver".
+
+#### Tools that don't go through standard `brew install`
+
+| Tool       | Install path                                                        |
+|------------|---------------------------------------------------------------------|
+| `rustc`    | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh -s -- -y` |
+| `hurl-lsp` | `brew tap testmind-hq/tap && brew install hurl-lsp`                 |
+
+`install.sh` handles both with explicit confirmation prompts before
+running. If you decline, the rest of the install continues normally.
+
+#### Hurl in Neovim
+
+When `hurl-lsp` is on `$PATH`, the Neovim config auto-wires it:
+
+- `vim.filetype.add` maps `*.hurl` → `hurl` filetype
+- Treesitter parser `hurl` is in `ensure_installed`
+- `lspconfig.hurl_lsp` is registered (cmd: `hurl-lsp`, filetype: `hurl`)
+
+Open any `.hurl` file → diagnostics, completion, hover all work via the
+same LSP machinery as Go / TS / Rust.
 
 Auto-installed by `install.sh`:
 

@@ -26,6 +26,7 @@ return {
         "lua", "vim", "vimdoc",
         "html", "css", "scss",
         "regex", "gitignore", "gitcommit",
+        "hurl",
       },
       highlight = { enable = true },
       indent    = { enable = true },

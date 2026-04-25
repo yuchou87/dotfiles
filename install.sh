@@ -130,7 +130,7 @@ OPTIONAL_DEPS="ffmpeg magick mmdc"
 # EXTRAS: modern replacements for classic Unix tools.
 # LANGS:  language toolchains for polyglot work; mise is the recommended
 #         umbrella version manager for go/node/python/rust/zig in one tool.
-EXTRAS_DEPS="bat eza delta zoxide jq yq tldr btm"
+EXTRAS_DEPS="bat eza delta zoxide jq yq tldr btm hurl hurl-lsp"
 LANGS_DEPS="go rustc zig pnpm bun fnm mise"
 
 # Map binary name -> brew formula / cask name (when they differ).
@@ -149,11 +149,57 @@ brew_formula_for() {
     # extras tier
     delta)    echo "git-delta" ;;
     btm)      echo "bottom" ;;
+    hurl-lsp) echo "" ;;            # special: brew tap testmind-hq/tap
 
     # langs tier
-    rustc)    echo "rust" ;;
+    rustc)    echo "" ;;             # special: rustup-init via curl
 
     *)        echo "$1" ;;
+  esac
+}
+
+# Tools that need a non-standard install path (not main brew formula or cask).
+# install_deps_macos() dispatches each one to a dedicated handler.
+install_special() {
+  local bin="$1"
+  case "$bin" in
+    rustc)
+      head "Rust toolchain (rustup)"
+      echo "    Will run the official rustup installer:"
+      echo "      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+      echo "    (The -y flag installs the default stable toolchain non-interactively.)"
+      read -r -p "Proceed? [Y/n] " ans
+      case "$ans" in
+        n|N|no|NO) echo "Skipping rustup."; return ;;
+      esac
+      run sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+      echo "    rustup installed under ~/.cargo. To activate in current shell:"
+      echo "      source \$HOME/.cargo/env"
+      ;;
+    hurl-lsp)
+      head "hurl-lsp (testmind-hq tap)"
+      echo "    Will run:"
+      echo "      brew tap testmind-hq/tap"
+      echo "      brew install hurl-lsp"
+      read -r -p "Proceed? [Y/n] " ans
+      case "$ans" in
+        n|N|no|NO) echo "Skipping hurl-lsp."; return ;;
+      esac
+      run brew tap testmind-hq/tap
+      run brew install hurl-lsp
+      ;;
+    *)
+      warn "install_special: no handler for $bin"
+      return 1
+      ;;
+  esac
+}
+
+# Whether $1 needs install_special() instead of normal brew install.
+is_special() {
+  case "$1" in
+    rustc|hurl-lsp) return 0 ;;
+    *)              return 1 ;;
   esac
 }
 
@@ -288,9 +334,20 @@ install_deps_macos() {
     return 1
   fi
 
-  # Split into formulas (brew install) and casks (brew install --cask)
+  # 1. Process tools needing custom install paths first (rustup curl, brew tap, ...)
+  for bin in $pkgs; do
+    if is_special "$bin"; then
+      install_special "$bin"
+      echo
+    fi
+  done
+
+  # 2. Split remaining into formulas (brew install) and casks (brew install --cask)
   local formulas="" casks=""
   for bin in $pkgs; do
+    if is_special "$bin"; then
+      continue
+    fi
     local f
     f="$(brew_formula_for "$bin")"
     if [ -z "$f" ]; then

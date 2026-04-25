@@ -21,6 +21,9 @@ o.undofile       = true
 
 -- Filetype overrides for ambiguous files
 vim.filetype.add({
+  extension = {
+    hurl = "hurl",
+  },
   filename = {
     [".env"]                = "sh",
     ["docker-compose.yml"]  = "yaml.docker-compose",

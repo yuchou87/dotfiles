@@ -54,6 +54,22 @@ return {
       local lsp  = require("lspconfig")
       local caps = require("blink.cmp").get_lsp_capabilities()
 
+      -- Register hurl-lsp (testmind-hq/hurl-lsp, not yet in lspconfig registry).
+      -- Binary comes from `brew install testmind-hq/tap/hurl-lsp`.
+      local lsp_configs = require("lspconfig.configs")
+      if not lsp_configs.hurl_lsp then
+        lsp_configs.hurl_lsp = {
+          default_config = {
+            cmd                 = { "hurl-lsp" },
+            filetypes           = { "hurl" },
+            root_dir            = lsp.util.find_git_ancestor or function(fname)
+              return vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true, path = fname })[1])
+            end,
+            single_file_support = true,
+          },
+        }
+      end
+
       -- Vue 3 hybrid mode: vtsls handles .vue via @vue/typescript-plugin
       local vue_ls_pkg = vim.fn.stdpath("data") ..
         "/mason/packages/vue-language-server/node_modules/@vue/language-server"
@@ -127,6 +143,10 @@ return {
         docker_compose_language_service = {
           filetypes = { "yaml.docker-compose" },
         },
+
+        -- Custom server: only attaches if `hurl-lsp` binary is on PATH.
+        -- Install: ./install.sh --with-extras  (brew tap testmind-hq/tap)
+        hurl_lsp = {},
       }
 
       for name, opts in pairs(servers) do
